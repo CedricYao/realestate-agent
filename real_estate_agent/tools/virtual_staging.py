@@ -1,70 +1,92 @@
 
+import io
+import os
+import uuid
+from typing import Dict, Any
+from io import BytesIO
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from PIL import Image
+from google.adk.tools import ToolContext
 
-def stage_image(image_path: str, style_prompt: str) -> str:
-    """
-    Virtually stages an image with furniture based on a style prompt.
+load_dotenv()
+project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+location = "global"
+
+async def stage_image(
+    tool_context: ToolContext, 
+    style_prompt: str = "mid-century modern"
+) -> Dict[str, Any]:
+    """Virtually stages an image with furniture based on a style prompt.
+
+    This tool takes an image as bytes and uses a generative AI model to edit it
+    based on the provided style prompt.
 
     Args:
-        image_path: The path to the image to stage.
-        style_prompt: A text prompt describing the desired style.
+        tool_context: The context object provided by the ADK framework, containing state.
+        style_prompt: A text prompt describing the desired style of furniture.
 
     Returns:
-        The path to the generated image.
+        {
+          "status": "success",
+          "detail": "...",
+          "filenames": ["filename.png", ...],
+        }
     """
+    print("------------------------------------------------")
+    artifact_ids = await tool_context.list_artifacts()
+
+    # Get the first artifact ID from the list which is the doc uploaded by the user
+    artifact_id = artifact_ids[0]
+    print(f"Reading artifact with ID: {artifact_id}")
+
     try:
-        print(f"Staging image at {image_path} with style: {style_prompt}")
+        print(f"Staging image with style: {style_prompt}")
+        artifact_content = await tool_context.load_artifact(artifact_id)
+        print( "The doc type: ", artifact_content.inline_data.mime_type )
+        image_data = artifact_content.inline_data.data
 
-        # Initialize the client. It will automatically use Vertex AI
-        # configuration from the environment variables.
-        client = genai.Client()
+        client = genai.Client(vertexai=True, project=project_id, location=location)
 
-        # Open the user's uploaded image
-        img = Image.open(image_path)
+        image_stream = io.BytesIO(image_data)
+        image = Image.open(image_stream)
 
-        # Create a reference to the uploaded image
-        raw_ref_image = types.RawReferenceImage(
-            reference_id="1",
-            reference_image=img,
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-image-preview",
+            contents=[style_prompt, image],
         )
+        print("Received response from model.")
+        
+        for part in response.candidates[0].content.parts:
+            if part.text is not None:
+                print(part.text)
+                return ("no parts with text found in response")
+            elif part.inline_data is not None:
+                image_bytes = part.inline_data.data
+                filename = f"staged_image_{uuid.uuid4()}.jpeg"
+                await tool_context.save_artifact(
+                    filename, types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg")
+                )
+                print(f"Saved artifact {filename}")
 
-        # Create a mask of the entire image to allow for general staging
-        # For a more advanced implementation, this could be a specific area.
-        mask_ref_image = types.MaskReferenceImage(
-            reference_id="2",
-            config=types.MaskReferenceConfig(
-                mask_mode='MASK_MODE_BACKGROUND',
-                mask_dilation=0,
-            ),
-        )
+                detail = (
+                    "Images generated via nano banna; bytes saved as artifacts."
+                    if filename
+                    else "Images generated via nano banana; artifacts not saved (download failed)."
+                )
 
-        # Call the edit_image API
-        response = client.models.edit_image(
-            model='imagen-3.0-capability-001',
-            prompt=style_prompt,
-            reference_images=[raw_ref_image, mask_ref_image],
-            config=types.EditImageConfig(
-                edit_mode='EDIT_MODE_INPAINT_INSERTION',
-                number_of_images=1,
-            ),
-        )
-
-        if response.generated_images:
-            generated_image = response.generated_images[0]
-            # The image data is in generated_image.image.image_bytes
-            # For simplicity, we'll save it and return the path.
-            output_path = f"staged_{image_path.split('/')[-1]}"
-            with open(output_path, "wb") as f:
-                f.write(generated_image.image.image_bytes)
-            print(f"Saved staged image to {output_path}")
-            return output_path
-        else:
-            print("Image generation failed. No images were returned.")
-            return ""
+                return {
+                    "status": "success",
+                    "detail": detail,
+                    "filenames": filename,  # artifact filenames you can reference later
+                }
+        return {
+            "status": "failed",
+            "detail": "Image generation failed. No images were returned.",
+            "filenames": "",  # artifact filenames you can reference later
+        }
+        return 
 
     except Exception as e:
-        print(f"An error occurred during image staging: {e}")
-        return ""
-
+        return f"An error occurred during image staging: {e}"

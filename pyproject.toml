@@ -17,4 +17,5 @@ packages = ["real_estate_agent"]
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "pytest-asyncio",
 ]
