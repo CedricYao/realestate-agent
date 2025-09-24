@@ -1,0 +1,4 @@
+adk-python
+google-generativeai
+Pillow
+python-dotenv
