@@ -1,10 +1,9 @@
 from google.genai import Client
-from google.genai.types import Part
 from google.adk.tools import FunctionTool
 from PIL import Image
 import io
 
-def stage_image_func(image: Part, style_prompt: str) -> str:
+def stage_image_func(image: bytes, style_prompt: str) -> str:
     """Virtually stages an image with furniture based on a style prompt."""
 
     try:
@@ -18,7 +17,7 @@ def stage_image_func(image: Part, style_prompt: str) -> str:
         )
 
         # Load the image from the binary artifact
-        img = Image.open(io.BytesIO(image.inline_data.data))
+        img = Image.open(io.BytesIO(image))
 
         # Get the generative model
         model = client.get_model("gemini-pro-vision")
