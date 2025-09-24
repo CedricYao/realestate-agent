@@ -15,9 +15,9 @@ The current project is empty. The plan will establish a new Python project struc
 
 ```
 /
+├── pyproject.toml     # Project metadata and dependencies (managed by uv)
 ├── agent.py           # Core ADK Agent definition
 ├── main.py            # Entrypoint to run the application
-├── requirements.txt   # Python dependencies
 └── tools/
     ├── __init__.py
     ├── home_search.py
@@ -46,22 +46,22 @@ The architecture will be a Python application centered around the Google Agent D
 ### Prerequisites
 1.  Install `uv` (the Python package manager). Instructions can be found at `https://github.com/astral-sh/uv`.
 2.  Set up a Python 3.9+ virtual environment: `python -m venv .venv && source .venv/bin/activate`.
-3.  Create a Google Cloud Platform project and enable the Vertex AI API.
-4.  Install the Google Cloud SDK and run `gcloud auth application-default login` to authenticate.
+3.  Initialize the project with uv: `uv init`.
+4.  Create a Google Cloud Platform project and enable the Vertex AI API.
+5.  Install the Google Cloud SDK and run `gcloud auth application-default login` to authenticate.
 
 ### Step-by-Step Implementation
-1.  **Step 1: Project Setup**
-    - Files to create: `requirements.txt`, `main.py`, `agent.py`, `tools/__init__.py`, `tools/home_search.py`, `tools/virtual_staging.py`
+1.  **Step 1: Project Setup and Dependencies**
+    - Files to create: `agent.py`, `main.py`, `tools/__init__.py`, `tools/home_search.py`, `tools/virtual_staging.py`
     - Changes needed:
         - Create the directory structure as outlined in the analysis.
-        - In `requirements.txt`, add the dependencies:
+        - Add and install dependencies using `uv add`. This will automatically update the `pyproject.toml` file.
+          ```bash
+          uv add google-adk
+          uv add google-genai
+          uv add requests
+          uv add Pillow
           ```
-          google-adk
-          google-genai
-          requests
-          Pillow
-          ```
-        - Install dependencies using UV: `uv pip install -r requirements.txt`.
 
 2.  **Step 2: Implement Core ADK Agent**
     - Files to modify: `agent.py`
