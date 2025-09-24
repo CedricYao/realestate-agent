@@ -1,8 +1,8 @@
-from adk.agent import Agent
-from adk.config import init_agent_config
+from google.adk.agents import Agent
+from google.adk.config import init_agent_config
 
-from tools.home_search import search_homes
-from tools.virtual_staging import stage_image
+from .tools.home_search import search_homes
+from .tools.virtual_staging import stage_image
 
 init_agent_config(
     name="RealEstateAssistant",

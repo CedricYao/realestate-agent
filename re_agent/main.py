@@ -1,5 +1,5 @@
-from adk.api import app
-from agent import RealEstateAssistant
+from google.adk.api import app
+from .agent import RealEstateAssistant
 
 if __name__ == "__main__":
     import uvicorn

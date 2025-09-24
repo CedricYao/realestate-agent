@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from adk.tools import tool
+from google.adk.tools import tool
 from PIL import Image
 
 # Configure the generative AI library to use Vertex AI
