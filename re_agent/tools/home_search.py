@@ -1,7 +1,6 @@
-from google.adk.tools import tool
+from google.adk.tools import FunctionTool
 
-@tool
-def search_homes(zip_code: str, max_price: int) -> list:
+def search_homes_func(zip_code: str, max_price: int) -> list:
     """Searches for homes in a given zip code up to a maximum price."""
 
     print(f"Searching for homes in {zip_code} up to ${max_price}...")
@@ -25,3 +24,5 @@ def search_homes(zip_code: str, max_price: int) -> list:
     ]
 
     return [p for p in mock_properties if p["price"] <= max_price]
+
+search_homes = FunctionTool(search_homes_func)
