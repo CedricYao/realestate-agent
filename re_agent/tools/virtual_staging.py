@@ -3,7 +3,7 @@ from google.adk.tools import FunctionTool
 from PIL import Image
 import io
 
-def stage_image_func(image: bytes, style_prompt: str) -> str:
+def stage_image_func(image, style_prompt: str) -> str:
     """Virtually stages an image with furniture based on a style prompt."""
 
     try:
@@ -16,7 +16,7 @@ def stage_image_func(image: bytes, style_prompt: str) -> str:
             location="us-central1",
         )
 
-        # Load the image from the binary artifact
+        # The image will be passed as bytes from the ADK web interface
         img = Image.open(io.BytesIO(image))
 
         # Get the generative model
