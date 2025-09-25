@@ -1,7 +1,11 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import pytest
 from unittest.mock import AsyncMock
 from google.genai import types
-from real_estate_agent.tools.virtual_staging import stage_image
+from agents_gallery.real_estate_agent.tools.virtual_staging import stage_image
 import os
 
 @pytest.mark.asyncio
